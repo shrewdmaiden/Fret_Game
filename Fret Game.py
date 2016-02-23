@@ -3,6 +3,26 @@ __author__ = 'gregory'
 import pygame
 import random
 
+class Button(pygame.sprite.Sprite):
+    def __init__(self, msg, x, y, width, height):
+        super().__init__()
+        self.offwhite = (252,233,201)
+        self.image = pygame.Surface([width, height])
+        pygame.draw.rect(self.image,self.offwhite,[0,0,width,height])
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.font = pygame.font.Font("freesansbold.ttf",20)
+        self.textSurf, self.textRect = self.text_objects(msg,self.font)
+        self.textRect.center = (width/2,height/2)
+        self.image.blit(self.textSurf, self.textRect)
+
+
+    def text_objects(self,text,font):
+        textsurface = font.render(text,True,(0,0,0))
+        return textsurface, textsurface.get_rect()
+
+
 class Game(object):
     def __init__(self):
         self.black = (0,0,0)
@@ -48,19 +68,13 @@ class Game(object):
         random.shuffle(choices)
         return stringchoice, fretchoice, answer, choices
 
-
-
-    def text_objects(self,text,font):
-        textsurface = font.render(text,True,self.black)
-        return textsurface, textsurface.get_rect()
-
     def display_response(self,response):
         smallText = pygame.font.SysFont("vivaldi",40)
         textSurf, textRect = self.text_objects(response,smallText)
         textRect.center = (327,50)
         screen.blit(textSurf,textRect)
 
-    def button(self,msg,x,y,width,height):
+    '''def button(self,msg,x,y,width,height):
         mouse = pygame.mouse.get_pos()
         click = pygame.mouse.get_pressed()
         smallText = pygame.font.Font("freesansbold.ttf", 20)
@@ -74,7 +88,7 @@ class Game(object):
                     self.display_response("correct")
                 elif msg != self.answerset[2]:
                     self.display_response("wrong")
-                self.answerset = self.pick_answer()
+                self.answerset = self.pick_answer()'''
 
     def fret(self, startx, starty, endx, endy, thickness, fret_num):
         if self.answerset[1] == fret_num:
@@ -91,9 +105,20 @@ class Game(object):
 
 
     def main(self, screen):
+        button_list = pygame.sprite.Group()
+        button1 = Button("B",300,150,50,50)
+        button2 = Button("E",300,220,50,50)
+        button3 = Button("A",300,290,50,50)
+        button4 = Button("G#",300,360,50,50)
+        button_list.add(button1)
+        button_list.add(button2)
+        button_list.add(button3)
+        button_list.add(button4)
+
         clock = pygame.time.Clock()
+
         self.answerset = self.pick_answer()
-        background = pygame.image.load("Violcropped.png")
+        background = pygame.image.load("Violcropped.png").convert()
         while 1:
             clock.tick(30)
             for event in pygame.event.get():
@@ -102,6 +127,7 @@ class Game(object):
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     return
 
+            button_list.update()
             screen.blit(background,(0,0))
 
             for key in self.string_pos:
@@ -112,11 +138,7 @@ class Game(object):
                 x = self.fret_pos[key]
                 self.fret(x[0], x[1], x[2], x[3], 2, key)
 
-            button_start = 100
-            for i in self.answerset[3]:
-                self.button(i,300,button_start,50,50)
-                button_start += 70
-
+            button_list.draw(screen)
             pygame.display.flip()
 
 if __name__ == '__main__':
